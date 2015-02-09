@@ -555,7 +555,7 @@ def upload_grades_csv(_xmodule_instance_args, _entry_id, course_id, _task_input,
     cohorts_header = ['Cohort Name'] if course.is_cohorted else []
 
     experiment_partitions = get_split_user_partitions(course.user_partitions)
-    group_configs_header = ['Experiment Group ({})'.format(partition.name) for partition in experiment_partitions]
+    group_configs_header = [u'Experiment Group ({})'.format(partition.name) for partition in experiment_partitions]
 
     # Loop over all our students and build our CSV lists in memory
     header = None

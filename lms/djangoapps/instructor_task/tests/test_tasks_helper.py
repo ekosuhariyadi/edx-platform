@@ -158,12 +158,12 @@ class TestInstructorGradeReport(TestReportMixin, InstructorTaskCourseTestCase):
             [Group(0, 'Group A'), Group(1, 'Group B')],
             scheme_id='cohort'
         )
-        experiment_group_a = Group(2, 'Experiment Group A')
-        experiment_group_b = Group(3, 'Experiment Group B')
+        experiment_group_a = Group(2, u'Expériment Group A')
+        experiment_group_b = Group(3, u'Expériment Group B')
         experiment_partition = UserPartition(
             1,
-            'Content Experiment Configuration',
-            'Group Configuration for Content Experiments',
+            u'Content Expériment Configuration',
+            u'Group Configuration for Content Expériments',
             [experiment_group_a, experiment_group_b],
             scheme_id='random'
         )
@@ -192,7 +192,7 @@ class TestInstructorGradeReport(TestReportMixin, InstructorTaskCourseTestCase):
         # Verify that we see user_a and user_b in their respective
         # content experiment groups, and that we do not see any
         # content groups.
-        experiment_group_message = 'Experiment Group ({content_experiment})'
+        experiment_group_message = u'Experiment Group ({content_experiment})'
         self._verify_cell_data_for_user(
             user_a.username,
             course.id,
