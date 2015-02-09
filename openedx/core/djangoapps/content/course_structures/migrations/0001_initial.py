@@ -14,26 +14,32 @@ class Migration(SchemaMigration):
             ('created', self.gf('model_utils.fields.AutoCreatedField')(default=datetime.datetime.now)),
             ('modified', self.gf('model_utils.fields.AutoLastModifiedField')(default=datetime.datetime.now)),
             ('course_id', self.gf('xmodule_django.models.CourseKeyField')(max_length=255, db_index=True)),
-            ('version', self.gf('django.db.models.fields.CharField')(max_length=255)),
+            ('version', self.gf('django.db.models.fields.CharField')(default='', max_length=255, blank=True)),
             ('structure_json', self.gf('django.db.models.fields.TextField')()),
         ))
         db.send_create_signal('course_structures', ['CourseStructure'])
 
+        # Adding unique constraint on 'CourseStructure', fields ['course_id', 'version']
+        db.create_unique('course_structures_coursestructure', ['course_id', 'version'])
+
 
     def backwards(self, orm):
+        # Removing unique constraint on 'CourseStructure', fields ['course_id', 'version']
+        db.delete_unique('course_structures_coursestructure', ['course_id', 'version'])
+
         # Deleting model 'CourseStructure'
         db.delete_table('course_structures_coursestructure')
 
 
     models = {
         'course_structures.coursestructure': {
-            'Meta': {'object_name': 'CourseStructure'},
+            'Meta': {'unique_together': "(('course_id', 'version'),)", 'object_name': 'CourseStructure'},
             'course_id': ('xmodule_django.models.CourseKeyField', [], {'max_length': '255', 'db_index': 'True'}),
             'created': ('model_utils.fields.AutoCreatedField', [], {'default': 'datetime.datetime.now'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'modified': ('model_utils.fields.AutoLastModifiedField', [], {'default': 'datetime.datetime.now'}),
             'structure_json': ('django.db.models.fields.TextField', [], {}),
-            'version': ('django.db.models.fields.CharField', [], {'max_length': '255'})
+            'version': ('django.db.models.fields.CharField', [], {'default': "''", 'max_length': '255', 'blank': 'True'})
         }
     }
 

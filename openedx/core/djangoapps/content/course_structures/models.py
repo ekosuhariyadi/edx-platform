@@ -22,12 +22,14 @@ class CourseStructure(TimeStampedModel):
     # we'd have to be careful about caching.
     structure_json = models.TextField(verbose_name='Structure JSON')
 
-    # Index together:
-    #   (course_id, version)
-    #   (course_id, created)
+    class Meta:
+        unique_together = ('course_id', 'version')
 
 
-def course_structure(course_key):
+def generate_course_structure(course_key):
+    """
+    Generates a course structure dictionary for the specified course.
+    """
     course = modulestore().get_course(course_key, depth=None)
     blocks_stack = [course]
     blocks_dict = {}
@@ -40,7 +42,7 @@ def course_structure(course_key):
             "display_name": curr_block.display_name,
             "graded": curr_block.graded,
             "format": curr_block.format,
-            "children": [unicode(ch.scope_ids.usage_id) for ch in children]
+            "children": [unicode(child.scope_ids.usage_id) for child in children]
         }
         blocks_stack.extend(children)
     return {
@@ -54,9 +56,18 @@ def listen_for_course_publish(sender, course_key, **kwargs):
 
 @task()
 def update_course_structure(course_key):
-    structure = course_structure(course_key)
-    CourseStructure.objects.create(
-        course_id=unicode(course_key),
-        structure_json=json.dumps(structure),
-        version="",
+    """
+    Regenerates and updates the course structure (in the database) for the specified course.
+    """
+    structure = generate_course_structure(course_key)
+    structure_json = json.dumps(structure)
+    cs, created = CourseStructure.objects.get_or_create(
+        course_id=course_key,
+        defaults={'structure_json': structure_json}
     )
+
+    if not created:
+        cs.structure_json = structure_json
+        cs.save()
+
+    return cs

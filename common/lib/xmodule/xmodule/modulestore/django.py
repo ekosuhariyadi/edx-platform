@@ -40,6 +40,7 @@ except ImportError:
 
 ASSET_IGNORE_REGEX = getattr(settings, "ASSET_IGNORE_REGEX", r"(^\._.*$)|(^\.DS_Store$)|(^.*~$)")
 
+
 class SignalHandler(object):
     """
     This class is to allow the modulestores to emit signals that can be caught
