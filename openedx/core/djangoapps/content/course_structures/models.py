@@ -12,7 +12,7 @@ from xmodule_django.models import CourseKeyField
 
 class CourseStructure(TimeStampedModel):
 
-    course_id = CourseKeyField(max_length=255, db_index=True)
+    course_id = CourseKeyField(max_length=255, db_index=True, verbose_name='Course ID')
     version = models.CharField(max_length=255, blank=True, default="")
 
     # Right now the only thing we do with the structure doc is store it and
@@ -20,7 +20,7 @@ class CourseStructure(TimeStampedModel):
     # we can do so and build a migration. The only problem with a normalized
     # data model for this is that it will likely involve hundreds of rows, and
     # we'd have to be careful about caching.
-    structure_json = models.TextField()
+    structure_json = models.TextField(verbose_name='Structure JSON')
 
     # Index together:
     #   (course_id, version)
