@@ -1,9 +1,12 @@
+"""
+Tests to verify correct number of MongoDB calls during course import/export and traversal
+when using the Split modulestore.
+"""
 
 from tempfile import mkdtemp
 from shutil import rmtree
 from unittest import TestCase
 
-#from xmodule.partitions.tests.test_partitions import PartitionTestCase
 from xmodule.modulestore.xml_importer import import_from_xml
 from xmodule.modulestore.xml_exporter import export_to_xml
 from xmodule.modulestore.tests.factories import check_mongo_calls
@@ -11,6 +14,9 @@ from xmodule.modulestore.tests.test_cross_modulestore_import_export import (
     MongoContentstoreBuilder, MixedModulestoreBuilder, VersioningModulestoreBuilder,
     TEST_DATA_DIR
 )
+
+MIXED_SPLIT_MODULESTORE_BUILDER = MixedModulestoreBuilder([('split', VersioningModulestoreBuilder())])
+
 
 class CountMongoCallsXMLRoundtrip(TestCase):
     """
@@ -26,15 +32,14 @@ class CountMongoCallsXMLRoundtrip(TestCase):
         # Construct the contentstore for storing the first import
         with MongoContentstoreBuilder().build() as source_content:
             # Construct the modulestore for storing the first import (using the previously created contentstore)
-            with MixedModulestoreBuilder([('split', VersioningModulestoreBuilder())]).build(source_content) as source_store:
+            with MIXED_SPLIT_MODULESTORE_BUILDER.build(source_content) as source_store:
                 # Construct the contentstore for storing the second import
                 with MongoContentstoreBuilder().build() as dest_content:
                     # Construct the modulestore for storing the second import (using the second contentstore)
-                    with MixedModulestoreBuilder([('split', VersioningModulestoreBuilder())]).build(dest_content) as dest_store:
+                    with MIXED_SPLIT_MODULESTORE_BUILDER.build(dest_content) as dest_store:
                         source_course_key = source_store.make_course_key('a', 'course', 'course')
                         dest_course_key = dest_store.make_course_key('a', 'course', 'course')
 
-                        print "************************ import_from_xml ********************************"
                         with check_mongo_calls(16, 190):
                             import_from_xml(
                                 source_store,
@@ -47,7 +52,6 @@ class CountMongoCallsXMLRoundtrip(TestCase):
                                 raise_on_failure=True,
                             )
 
-                        print "************************ export_to_xml ********************************"
                         with check_mongo_calls(37):
                             export_to_xml(
                                 source_store,
@@ -57,7 +61,6 @@ class CountMongoCallsXMLRoundtrip(TestCase):
                                 'exported_source_course',
                             )
 
-                        print "************************ import_from_xml ********************************"
                         with check_mongo_calls(16, 189):
                             import_from_xml(
                                 dest_store,
@@ -81,7 +84,7 @@ class CountMongoCallsCourseTraversal(TestCase):
         # Construct the contentstore for storing the course import
         with MongoContentstoreBuilder().build() as source_content:
             # Construct the modulestore for storing the course import (using the previously created contentstore)
-            with MixedModulestoreBuilder([('split', VersioningModulestoreBuilder())]).build(source_content) as source_store:
+            with MIXED_SPLIT_MODULESTORE_BUILDER.build(source_content) as source_store:
 
                 source_course_key = source_store.make_course_key('a', 'course', 'course')
 
@@ -101,10 +104,10 @@ class CountMongoCallsCourseTraversal(TestCase):
                 # lms/djangoapps/mobile_api/video_outlines/serializers.py:BlockOutline
                 # Starting at the root course block, do a breadth-first traversal using
                 # get_children() to retrieve each block's children.
-                #
+                # pylint: disable=bad-continuation
                 for depth, num_calls in (
-                    (None, 7), # The way this traversal *should* be done.
-                    (0, 145)   # The pathological case - do *not* query a course this way!
+                    (None, 7),  # The way this traversal *should* be done.
+                    (0, 145)    # The pathological case - do *not* query a course this way!
                 ):
                     with check_mongo_calls(num_calls):
                         start_block = source_store.get_course(source_course_key, depth=depth)
