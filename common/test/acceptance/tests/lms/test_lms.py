@@ -354,13 +354,6 @@ class PayAndVerifyTest(UniqueCourseTest):
             1
         )
 
-        # Navigate to the dashboard
-        self.dashboard_page.visit()
-
-        # Expect that we're enrolled as verified in the course
-        enrollment_mode = self.dashboard_page.get_enrollment_mode(self.course_info["display_name"])
-        self.assertEqual(enrollment_mode, 'verified')
-
         # Expect no enrollment activated event
         assert_event_emitted_num_times(
             self.event_collection,
@@ -369,6 +362,13 @@ class PayAndVerifyTest(UniqueCourseTest):
             student_id,
             0
         )
+
+        # Navigate to the dashboard
+        self.dashboard_page.visit()
+
+        # Expect that we're enrolled as verified in the course
+        enrollment_mode = self.dashboard_page.get_enrollment_mode(self.course_info["display_name"])
+        self.assertEqual(enrollment_mode, 'verified')
 
 
 class LanguageTest(WebAppTest):
