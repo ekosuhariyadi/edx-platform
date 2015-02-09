@@ -969,7 +969,7 @@ TEMPLATE_LOADERS = (
     'edxmako.makoloader.MakoAppDirectoriesLoader',
 
     # 'django.template.loaders.filesystem.Loader',
-    # 'django.template.loaders.app_directories.Loader',
+    'django.template.loaders.app_directories.Loader',
 
 )
 
@@ -1623,6 +1623,12 @@ INSTALLED_APPS = (
     'survey',
 
     'lms.djangoapps.lms_xblock',
+
+    # Edx notifications
+    'edx_notifications',
+
+    # Edx notifications web server
+    'edx_notifications.server.web',
 )
 
 ######################### MARKETING SITE ###############################
@@ -1948,9 +1954,6 @@ OPTIONAL_APPS = (
 
     # milestones
     'milestones',
-
-    # edx_notifications
-    'edx_notifications',
 )
 
 for app_name in OPTIONAL_APPS:
