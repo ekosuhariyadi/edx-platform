@@ -16,6 +16,7 @@ from student.tests.factories import UserFactory
 from student.models import CourseEnrollment
 from xmodule.partitions.partitions import Group, UserPartition
 
+from openedx.core.djangoapps.course_groups.models import CourseUserGroupPartitionGroup
 from openedx.core.djangoapps.course_groups.tests.helpers import CohortFactory
 import openedx.core.djangoapps.user_api.api.course_tag as course_tag_api
 from openedx.core.djangoapps.user_api.partition_schemes import RandomUserPartitionScheme
@@ -167,7 +168,10 @@ class TestInstructorGradeReport(TestReportMixin, InstructorTaskCourseTestCase):
             [experiment_group_a, experiment_group_b],
             scheme_id='random'
         )
-        course = CourseFactory.create(user_partitions=[cohort_scheme_partition, experiment_partition])
+        course = CourseFactory.create(
+            cohort_config={'cohorted': True},
+            user_partitions=[cohort_scheme_partition, experiment_partition]
+        )
 
         # Create user_a and user_b which are enrolled in the course
         # and assigned to experiment_group_a and experiment_group_b,
@@ -189,6 +193,17 @@ class TestInstructorGradeReport(TestReportMixin, InstructorTaskCourseTestCase):
             experiment_group_b.id
         )
 
+        # Assign user_a to a group in the 'cohort'-schemed user
+        # partition (by way of a cohort) to verify that the user
+        # partition group does not show up in the "Experiment Group"
+        # cell.
+        cohort_a = CohortFactory.create(course_id=course.id, name=u'Cohørt A', users=[user_a])
+        CourseUserGroupPartitionGroup(
+            course_user_group=cohort_a,
+            partition_id=cohort_scheme_partition.id,
+            group_id=cohort_scheme_partition.groups[0].id
+        ).save()
+
         # Verify that we see user_a and user_b in their respective
         # content experiment groups, and that we do not see any
         # content groups.
@@ -208,6 +223,21 @@ class TestInstructorGradeReport(TestReportMixin, InstructorTaskCourseTestCase):
                 content_experiment=experiment_partition.name
             ),
             experiment_group_b.name
+        )
+
+        # Make sure cohort info is correct.
+        cohort_name_header = 'Cohort Name'
+        self._verify_cell_data_for_user(
+            user_a.username,
+            course.id,
+            cohort_name_header,
+            cohort_a.name
+        )
+        self._verify_cell_data_for_user(
+            user_b.username,
+            course.id,
+            cohort_name_header,
+            ''
         )
 
     @patch('instructor_task.tasks_helper._get_current_task')
