@@ -110,7 +110,7 @@ class CourseCohort(models.Model):
             assignment_type: 'random' or 'manual'
         """
         if course_user_group is None:
-            course_user_group = CourseUserGroup.create(cohort_name, course_id)
+            course_user_group, __ = CourseUserGroup.create(cohort_name, course_id)
 
         cls.objects.get_or_create(
             course_user_group=course_user_group,
