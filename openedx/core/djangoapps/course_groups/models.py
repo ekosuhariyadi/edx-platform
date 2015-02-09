@@ -99,15 +99,22 @@ class CourseCohort(models.Model):
     assignment_type = models.CharField(max_length=20, choices=ASSIGNMENT_TYPE_CHOICES, default=MANUAL)
 
     @classmethod
-    def create(cls, course_user_group, assignment_type=MANUAL):
+    def create(cls, cohort_name=None, course_id=None, course_user_group=None, assignment_type=MANUAL):
         """
-        Create a new course cohort info object.
+        Create a complete(CourseUserGroup + CourseCohort) object.
 
         Args:
+            cohort_name: Name of the cohort to be created
+            course_id: Course Id
             course_user_group: CourseUserGroup
             assignment_type: 'random' or 'manual'
         """
-        return cls.objects.get_or_create(
+        if course_user_group is None:
+            course_user_group = CourseUserGroup.create(cohort_name, course_id)
+
+        cls.objects.get_or_create(
             course_user_group=course_user_group,
             defaults={'assignment_type': assignment_type}
         )
+
+        return course_user_group

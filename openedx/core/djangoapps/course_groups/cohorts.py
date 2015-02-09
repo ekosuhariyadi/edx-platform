@@ -215,8 +215,11 @@ def get_cohort(user, course_key, assign=True):
     if cohorts:
         cohort = local_random().choice(cohorts)
     else:
-        cohort, __ = CourseUserGroup.create(name=DEFAULT_COHORT_NAME, course_id=course_key)
-        CourseCohort.create(course_user_group=cohort, assignment_type=CourseCohort.RANDOM)
+        cohort = CourseCohort.create(
+            cohort_name=DEFAULT_COHORT_NAME,
+            course_id=course_key,
+            assignment_type=CourseCohort.RANDOM
+        )
 
     user.course_groups.add(cohort)
 
@@ -249,8 +252,7 @@ def migrate_cohort_settings(course):
             CourseCohort.create(course_user_group=cohort)
 
         for group_name in course.auto_cohort_groups:
-            cohort, __ = CourseUserGroup.create(name=group_name, course_id=course_id)
-            CourseCohort.create(course_user_group=cohort, assignment_type=CourseCohort.RANDOM)
+            CourseCohort.create(cohort_name=group_name, course_id=course_id, assignment_type=CourseCohort.RANDOM)
 
     return cohort_settings
 
@@ -319,8 +321,7 @@ def add_cohort(course_key, name, assignment_type):
     except Http404:
         raise ValueError("Invalid course_key")
 
-    cohort, __ = CourseUserGroup.create(name=name, course_id=course.id)
-    CourseCohort.create(course_user_group=cohort, assignment_type=assignment_type)
+    cohort = CourseCohort.create(cohort_name=name, course_id=course.id, assignment_type=assignment_type)
 
     tracker.emit(
         "edx.cohort.creation_requested",
