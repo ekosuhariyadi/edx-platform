@@ -9,6 +9,7 @@ import time
 import json
 from collections import defaultdict
 from pytz import UTC
+from urllib import urlencode
 
 from django.conf import settings
 from django.contrib.auth import logout, authenticate, login
@@ -54,7 +55,7 @@ from student.models import (
     PendingEmailChange, CourseEnrollment, unique_id_for_user,
     CourseEnrollmentAllowed, UserStanding, LoginFailures,
     create_comments_service_user, PasswordHistory, UserSignupSource,
-    DashboardConfiguration)
+    DashboardConfiguration,LinkedInUrlConfiguration)
 from student.forms import PasswordResetFormNoActive
 
 from verify_student.models import SoftwareSecurePhotoVerification, MidcourseReverificationWindow
@@ -349,6 +350,19 @@ def _cert_info(user, course, cert_status):
             return default_info
         else:
             status_dict['download_url'] = cert_status['download_url']
+
+            # getting linkedin URL and then pass the params which appears
+            # on user profile
+            linked_in_url = LinkedInUrlConfiguration.current().linkedin_url
+            cert_name = '{type} Certificate for {cert_name}'.format(
+                type=cert_status["mode"].title(), cert_name=course.display_name
+            )
+            params_dict = {
+                'pfCertificationName': cert_name,
+                'pfCertificationUrl': cert_status['download_url']
+            }
+
+            status_dict['linked_in_url'] = linked_in_url + urlencode(params_dict)
 
     if status in ('generating', 'ready', 'notpassing', 'restricted'):
         if 'grade' not in cert_status:

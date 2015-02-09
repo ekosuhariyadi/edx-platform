@@ -1435,3 +1435,14 @@ class DashboardConfiguration(ConfigurationModel):
     @property
     def recent_enrollment_seconds(self):
         return self.recent_enrollment_time_delta
+
+
+class LinkedInUrlConfiguration(ConfigurationModel):
+    """
+    Register Linked Add to Profile Link
+    """
+    # linked-in URL field
+    linkedin_url = models.URLField(
+        blank=True,
+        help_text="A LinkedIn URL for the Add-to-profile Certificates."
+    )
