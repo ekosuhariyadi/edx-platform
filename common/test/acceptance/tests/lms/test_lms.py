@@ -242,14 +242,6 @@ class PayAndVerifyTest(UniqueCourseTest):
         # Navigate to the track selection page
         self.track_selection_page.visit()
 
-        # Expect enrollment activated event
-        assert_event_emitted_num_times(
-            self.event_collection,
-            "edx.course.enrollment.activated",
-            self.start_time,
-            student_id,
-            1)
-
         # Enter the payment and verification flow by choosing to enroll as verified
         self.track_selection_page.enroll('verified')
 
@@ -258,6 +250,24 @@ class PayAndVerifyTest(UniqueCourseTest):
 
         # Submit payment
         self.fake_payment_page.submit_payment()
+
+        # Expect enrollment activated event
+        assert_event_emitted_num_times(
+            self.event_collection,
+            "edx.course.enrollment.activated",
+            self.start_time,
+            student_id,
+            1
+        )
+
+        # Expect that one mode_changed enrollment event fired as part of the upgrade
+        assert_event_emitted_num_times(
+            self.event_collection,
+            "edx.course.enrollment.mode_changed",
+            self.start_time,
+            student_id,
+            1
+        )
 
         # Proceed to verification
         self.payment_and_verification_flow.immediate_verification()
@@ -272,15 +282,6 @@ class PayAndVerifyTest(UniqueCourseTest):
 
         # Submit photos and proceed to the enrollment confirmation step
         self.payment_and_verification_flow.next_verification_step(self.immediate_verification_page)
-
-        # Expect that one mode_changed enrollment event fired as part of the upgrade
-        assert_event_emitted_num_times(
-            self.event_collection,
-            "edx.course.enrollment.mode_changed",
-            self.start_time,
-            student_id,
-            1
-        )
 
         # Navigate to the dashboard
         self.dashboard_page.visit()
@@ -311,7 +312,8 @@ class PayAndVerifyTest(UniqueCourseTest):
             "edx.course.enrollment.activated",
             self.start_time,
             student_id,
-            1)
+            1
+        )
 
         # Navigate to the dashboard
         self.dashboard_page.visit()
